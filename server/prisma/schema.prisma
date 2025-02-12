@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String     @id @default(uuid())
+  whatsappNumber String     @unique @db.VarChar(15)
+  email          String     @unique @db.VarChar(255)
+  password       String     @db.VarChar(255)
+  fullName       String     @db.VarChar(255)
+  cnic           String     @db.VarChar(20)
+  role           RoleType   @default(USER)
+  status         StatusType @default(ACTIVE)
+  balance        Float      @default(0.0)
+  createdAt      DateTime   @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime   @updatedAt @db.Timestamp(6)
+
+  payment Payment[]
+  userBet UserBet[]
+}
+
+model Payment {
+  id                Int             @id @default(autoincrement())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  betOption         Int?
+  betNumber         Int?
+  coins             Decimal?        @default(0.00) @db.Decimal(10, 2)
+  debit             Decimal?        @default(0.00) @db.Decimal(10, 2)
+  credit            Decimal?        @default(0.00) @db.Decimal(10, 2)
+  transactionStatus Boolean         @default(false)
+  paymentType       paymentType
+  transactionType   transactionType
+  desc              String?
+  createdAt         DateTime        @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime        @updatedAt @db.Timestamp(6)
+}
+
+model Logs {
+  id               Int      @id @default(autoincrement())
+  timestamp        DateTime @default(now()) @db.Timestamptz
+  serverSeed       String   @db.Text
+  clientSeed       String   @db.Text
+  combinedSeed     String   @db.Text
+  hashedSeed       String   @db.Text
+  hashedServerSeed String   @db.Text
+  logsOf           GameType
+  results          String   @db.Text
+
+  createdAt DateTime  @default(now())
+  UserBet   UserBet[]
+}
+
+model UserBet {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              GameType
+  betOption         Int?
+  coins             Decimal  @default(0.00) @db.Decimal(10, 2)
+  transactionStatus Boolean  @default(false)
+
+  // One-to-one relation with Logs for lastLog
+  lastLogId Int? // Foreign key to Logs (optional)
+  lastLog   Logs? @relation(fields: [lastLogId], references: [id], onDelete: SetNull) // Optional until Log is created
+
+  betFor Int
+
+  createdAt DateTime @default(now())
+}
+
+enum GameType {
+  SPIN
+  FLIP
+}
+
+enum RoleType {
+  ADMIN
+  USER
+}
+
+enum StatusType {
+  ACTIVE
+  INACTIVE
+}
+
+enum paymentType {
+  DEBIT
+  CREDIT
+  COINS
+}
+
+enum transactionType {
+  USER
+  ADMIN
+}

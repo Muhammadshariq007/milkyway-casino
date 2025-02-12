@@ -1,0 +1,43 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Node.js Application
+  node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "3000:3000"  # Node.js app runs on port 3000 inside the container
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://postgres:1234@db:5432/milkyway_db  # Postgres connection URL
+    depends_on:
+      - db  # Ensure PostgreSQL is started first
+
+  # PostgreSQL Database
+  db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: milkyway_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Mount your nginx.conf file
+    depends_on:
+      - node
+
+volumes:
+  postgres_data:

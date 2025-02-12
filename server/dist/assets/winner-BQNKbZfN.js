@@ -1,0 +1,1 @@
+import{b as r}from"./apiService-DQ17RC1n.js";class t{async getSpinningResults(s){try{return await r.get(`get-last-spins/${s}`)}catch(e){throw this.handleError(e),e}}async placeBet(s){try{return await r.post("place-bet/",s)}catch(e){throw this.handleError(e),e}}}const o=new t,c="/assets/winner-DfiQwTGe.png";export{c as _,o as g};
